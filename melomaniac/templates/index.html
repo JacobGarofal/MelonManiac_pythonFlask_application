@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<div class="container">
+    <div class="mt-4 p-5 bg-light rounded">
+        <h1 class="display-4">Find Your Next Concert!</h1>
+        <p class="lead">Browse, search, and purchase tickets for your favorite music events with Melomaniac.</p>
+        <hr class="my-4">
+        <p>Are you an artist? Promote your event with us!</p>
+        <a class="btn btn-primary btn-lg" href="{{url_for('event.create')}}" role="button">Create Event</a>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+
+                <!-- Main Search Bar -->
+                <form class="mb-3" method="get" action="{{ url_for('main.index') }}">
+                    <div class="input-group">
+                        <input autofocus class="form-control me-2" type="search" name="query" placeholder="Search for events" aria-label="Search" value="{{ filter_args.query or '' }}">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-primary p-3" type="submit">
+                                <i class="fa-solid fa-magnifying-glass fa-fw"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button id="toggleButton" class="btn btn-link mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters" aria-expanded="true" aria-controls="advancedFilters">
+                        Fewer search options <i id="toggleIcon" class="fas fa-chevron-up"></i>
+                    </button>
+
+                    <!-- Collapsible filters -->
+                    <div class="collapse-show" id="advancedFilters">
+                        <div class="row">
+                            <div class="col-md-3 mb-2">
+                                <label for="genreFilter">Genre</label>
+                                <select class="form-control" style="width: 100%" id="genreFilter" name="genre" value="{{filter_args.genre}}">
+                                    <option value=""></option>
+                                    {% for g in Genre %}
+                                    <option value="{{g.name.lower()}}" {{ 'selected' if filter_args.genre == g.value else '' }}>{{g.name.capitalize()}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="statusFilter">Event Status</label>
+                                <select class="form-control" id="statusFilter" name="status">
+                                    <option value=""></option>
+                                    {% for s in EventStatus %}
+                                    <option value="{{s.name.lower()}}" {{ 'selected' if filter_args.status == s.value else '' }}>{{s.name.capitalize()}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="fromDate">From</label>
+                                <input id="fromDate" name="fromDate" type="date" class="form-control" placeholder="From date" value="{{filter_args.fromDate}}">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="toDate">To</label>
+                                <input id="toDate" name="toDate" type="date" class="form-control" placeholder="To date" value="{{filter_args.toDate}}">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="minPrice">Min Price</label>
+                                <input id="minPrice" name="minPrice" type="number" class="form-control" placeholder="Min price" value="{{filter_args.minPrice}}">
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <label for="maxPrice">Max Price</label>
+                                <input id="maxPrice" name="maxPrice" type="number" class="form-control" placeholder="Max price" value="{{filter_args.maxPrice}}">
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <label for="sortOptions" class="me-2">Sort by:</label>
+                                <select class="form-control" id="sortOptions" name="sort">
+                                    <option value="az-up" {{ 'selected' if filter_args.sort == 'az-up' else '' }}>Alphabetical (A-Z)</option>
+                                    <option value="az-down" {{ 'selected' if filter_args.sort == 'az-down' else '' }}>Alphabetical (Z-A)</option>
+                                    <option value="price-up" {{ 'selected' if filter_args.sort == 'price-up' else '' }}>Ticket price (low to high)</option>
+                                    <option value="price-down" {{ 'selected' if filter_args.sort == 'price-down' else '' }}>Ticket price (high to low)</option>
+                                    <option value="date-up" {{ 'selected' if filter_args.sort == 'date-up' else '' }}>Start date (low to high)</option>
+                                    <option value="date-down" {{ 'selected' if filter_args.sort == 'date-down' else '' }}>Start date (high to low)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <input type="checkbox" id="showEndedEvents" name="showEndedEvents" value="true" {{ 'checked' if filter_args.showEndedEvents == 'true' else '' }}>
+                                <label for="showEndedEvents" class="me-2">Show events that have already ended</label>
+                            </div>
+                        </div>
+
+                        <!-- reset or apply filters -->
+                        <div class="row">
+                            <div class="col-md-2">
+                                <a href="{{ url_for('main.index') }}" class="btn btn-outline-danger">
+                                    <i class="fas fa-undo"></i> Reset Filters
+                                </a>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-outline-success">
+                                    <i class="fas fa-check"></i> Apply Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+  <div class="container my-5">
+    <h2>{{'All' if filter_args.showEndedEvents == 'true' else 'Upcoming'}} Events</h2>
+    <div class="row">
+        {% if events|length == 0 %}
+        <p class="text-muted">No events found. Try resetting your search filters and trying again.</p>
+        {% endif %}
+        {% for event in events %}
+        <div class="col-xs-6 col-md-6 col-lg-4 mb-4">
+            <div class="card">
+                <a href="{{ url_for('event.get_event', event_id=event.id) }}">
+                    <img src="{{event.image}}" class="card-img-top" alt="Event Image">
+                </a>
+                <div class="card-body">
+                    {% if event.status == EventStatus.OPEN.value %}
+                    <p class="card-text badge badge-success">Open</p>
+                    {% elif event.status == EventStatus.INACTIVE.value %}
+                    <p class="card-text badge badge-warning">Inactive</p>
+                    {% elif event.status == EventStatus.SOLDOUT.value %}
+                    <p class="card-text badge badge-danger">Sold-out</p>
+                    {% elif event.status == EventStatus.CANCELLED.value %}
+                    <p class="card-text badge badge-danger">Cancelled</p>
+                    {% endif %}
+                    
+                    
+                    <h5 class="card-title">{{event.name}}</h5>
+                    <p class="card-text"><i class="fa-fw fas fa-user me-2"></i>{{event.user.name}}</p>
+                    <p class="card-text"><i class="fa-fw fas fa-calendar-alt me-2"></i>{{event.readable_date(event.start_date)}}</p>
+                    <p class="card-text"><i class="fa-fw fas fa-location-pin me-2"></i>{{event.venue.name}}</p>
+                    <p class="card-text"><i class="fa-fw fas fa-music me-2"></i>Genre: {{ Genre(event.genre).name.capitalize() }}</p>
+                    {% if event.ticket_price == 0.0 %}
+                    <p class="card-text"><i class="fa-fw fas fa-tag me-2"></i>Price: Free</p>
+                    {% else %}
+                    <p class="card-text"><i class="fa-fw fas fa-tag me-2"></i>Price: ${{ '{:.2f}'.format(event.ticket_price) }}</p>
+                    {% endif %}
+                    <a href="{{ url_for('event.get_event', event_id=event.id) }}" class="btn btn-primary mt-2">View Details</a>
+
+                    {% if event.user_id == current_user.id and event.status != EventStatus.CANCELLED.value %}
+                    <a href="{{ url_for('event.edit', event_id=event.id) }}" class="btn btn-primary mt-2">Edit Details</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <!-- Pagination -->
+    <!-- Pagination -->
+    <ul class="pagination">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('main.index', page=pagination.prev_num, **filter_args) }}">Prev</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="page-link" href="#">Prev</a>
+        </li>
+        {% endif %}
+
+        {% for p in pagination.iter_pages() %}
+        <li class="page-item {% if p == pagination.page %}active{% endif %}">
+            {% if p %}
+            <a class="page-link" href="{{ url_for('main.index', page=p, **filter_args) }}">{{ p }}</a>
+            {% else %}
+            <span class="page-link">...</span>
+            {% endif %}
+        </li>
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('main.index', page=pagination.next_num, **filter_args) }}">Next</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="page-link" href="#">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+
+{%block scripts %}
+<script src="{{ url_for('static', filename='scripts/home.js') }}"></script>
+{% endblock %}

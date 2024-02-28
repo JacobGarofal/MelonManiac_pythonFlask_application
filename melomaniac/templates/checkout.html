@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% from 'bootstrap5/form.html' import render_form %}
+
+{% block header %}
+<div class="container mt-5">
+    <h1>Checkout</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    {% if items|length == 0 %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Your cart is empty.
+    </div>
+    {% else %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Event</th>
+                <th>Quantity</th>
+                <th>Total Price</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cart_id, item in items.items() %}
+            <tr>
+                <td>{{ item.event_name }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>${{ '{:.2f}'.format(item.total_price) }}</td>
+                <td>
+                    <form method="post" action="{{ url_for('checkout.remove_from_cart', cart_id=cart_id) }}">
+                        <input type="hidden" name="id" value="{{ cart_id }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Checkout form -->
+    {{ render_form(form) }}
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

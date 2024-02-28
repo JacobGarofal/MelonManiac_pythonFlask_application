@@ -1,0 +1,38 @@
+{% from 'bootstrap5/form.html' import render_form %}
+<div class="modal fade" id="getTicketsModal" tabindex="-1" aria-labelledby="getTicketsModalLabel" aria-hidden="true" data-event-id="{{event.id}}">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="getTicketsModalLabel">Get Tickets</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="justify-content-center d-flex">
+                    <div>
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            There are {{event.available_tickets}} tickets remaining for this event.
+                        </div>
+                        <div class="my-5">
+                            <h5>Venue details</h5>
+                            <p><strong>Venue Name:</strong> {{event.venue.name}}</p>
+                            <p><strong>Capacity:</strong> {{event.venue.capacity}}</p>
+                            <p><strong>Address:</strong> {{event.venue.address}}</p>
+                        </div>
+
+                        <div class="my-5">
+                            <h5>Choose your tickets</h5>
+                            <div class="d-flex align-items-center mb-2">
+                                <span id="ticketLabel" class="ticket-label" data-ticket-price="{{ '{:.2f}'.format(event.ticket_price) }}">General Admission<br/>${{ '{:.2f}'.format(event.ticket_price) }}:</span>
+                                {{render_form(form)}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Event Info Card -->
+    <div class="card mb-4" style="background: url('{{event.image}}') center / cover no-repeat;">
+        <div class="card-body text-white" style="background: rgba(0, 0, 0, 0.6);">
+            <h2 class="card-title"><i class="fas fa-ticket-alt me-2"></i>{{event.name}}</h2>
+            <p class="card-text"><i class="fas fa-user me-2"></i>{{event.user.name}}</p>
+            <p class="card-text"><i class="fas fa-calendar-alt me-2"></i>{{event.readable_date(event.start_date)}} - {{event.readable_date(event.end_date)}}</p>
+            <p class="card-text"><i class="fas fa-map-marker-alt me-2"></i>{{event.venue.name}}</p>
+            <p class="card-text"><i class="fas fa-music me-2"></i> Genres: {{genres(event.genre).name.capitalize()}}</p>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-4">
+            <button 
+                type="button" 
+                class="btn btn-primary" 
+                data-bs-toggle="modal" 
+                data-bs-target="#getTicketsModal" 
+                {{ '' if (current_user.is_authenticated and event.status == status.OPEN.value) else 'disabled' }}
+                id="getTicketsBtn"
+            >
+                Get Tickets
+            </button>
+            {% if current_user.id == event.user_id and event.status != status.CANCELLED.value %}
+            <a href="{{ url_for('event.edit', event_id=event.id) }}" class="btn btn-outline-primary">Edit Details</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mb-4">
+        <div class="alert alert-warning {{ 'd-none' if current_user.is_authenticated else 'd-block' }}">
+            <small>
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                You must be logged in to buy tickets.
+            </small>
+        </div>
+        <div class="alert alert-warning {{ 'd-none' if event.status == status.OPEN.value else 'd-block' }}">
+            <small>
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                You can only buy tickets for open events.
+            </small>
+            
+        </div>
+    </div>
+
+    <!-- Description Card -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h2 class="card-title h4">Description</h2>
+            <p class="card-text">{{event.description}}</p>
+        </div>
+    </div>
+
+    <!-- Get Tickets Modal -->
+    {% include 'events/_get_tickets.html' %}
+    
+    <hr />
+
+    <!-- Comments Card -->
+    <div class="card mb-4 mt-5">
+        <div class="card-body">
+            <h2 class="card-title h4 mb-4">Comments</h2>
+            {% for comment in comments %}
+            <div class="mb-3 d-flex">
+                <i class="fas fa-user-circle fa-3x me-3" style="color: {{comment.user.get_profile_color()}}"></i>
+                <div>
+                    <h5 class="mt-0">{{comment.user.name}}<small title="{{event.readable_date(comment.timestamp)}}" class="text-muted">- {{comment.timestamp|naturaltime}}</small></h5>
+                    <p class="comment-card">{{comment.text}}</p>
+                </div>
+            </div>
+            {% endfor %}
+
+
+            {% if current_user.is_authenticated %}
+            <form method="post" action="{{ url_for('event.get_event', event_id=event.id) }}">
+                <div class="input-group mb-3">
+                    {{ comment_form.text(class='form-control') }}
+                    <div class="input-group-append">
+                        {{ comment_form.submit(class='btn btn-outline-primary btn-lg') }}
+                    </div>
+                    {{ comment_form.hidden_tag() }}
+                </div>
+            </form>
+            {% else %}
+            <div class="mt-5">
+                <small>You must be logged in to post comments.
+                    <a href="{{ url_for('auth.login', next=request.path) }}">Log in.</a>
+                </small>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

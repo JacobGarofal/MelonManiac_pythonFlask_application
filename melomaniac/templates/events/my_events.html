@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<div class="container mt-5">
+    <h1>My Events</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+        <div class="row">
+            {% if my_events|length == 0 %}
+            <p class="text-muted">You have not created any events. <a href="{{ url_for('event.create_event') }}">Create an event here.</a></p>
+            {% endif %}
+            {% for event in my_events %}
+            <div class="col-xs-6 col-md-6 col-lg-4 mb-4">
+                <div class="card">
+                    <a href="{{ url_for('event.get_event', event_id=event.id) }}">
+                        <img src="{{event.image}}" class="card-img-top" alt="Event Image">
+                    </a>
+                    <div class="card-body">
+                        {% if event.status == EventStatus.OPEN.value %}
+                        <p class="card-text badge badge-success">Open</p>
+                        {% elif event.status == EventStatus.INACTIVE.value %}
+                        <p class="card-text badge badge-warning">Inactive</p>
+                        {% elif event.status == EventStatus.SOLDOUT.value %}
+                        <p class="card-text badge badge-danger">Sold-out</p>
+                        {% elif event.status == EventStatus.CANCELLED.value %}
+                        <p class="card-text badge badge-danger">Cancelled</p>
+                        {% endif %}
+                        <h5 class="card-title">{{event.name}}</h5>
+                        <p class="card-text"><i class="fa-fw fas fa-user me-2"></i>{{event.user.name}}</p>
+                        <p class="card-text"><i class="fa-fw fas fa-calendar-alt me-2"></i>{{event.readable_date(event.start_date)}}</p>
+                        <p class="card-text"><i class="fa-fw fas fa-location-pin me-2"></i>{{event.venue.name}}</p>
+                        <p class="card-text"><i class="fa-fw fas fa-music me-2"></i>Genre: {{ Genre(event.genre).name.capitalize() }}</p>
+                        {% if event.ticket_price == 0.0 %}
+                        <p class="card-text"><i class="fa-fw fas fa-tag me-2"></i>Price: Free</p>
+                        {% else %}
+                        <p class="card-text"><i class="fa-fw fas fa-tag me-2"></i>Price: ${{ '{:.2f}'.format(event.ticket_price) }}</p>
+                        {% endif %}
+                        <a href="{{ url_for('event.get_event', event_id=event.id) }}" class="btn btn-primary mt-2">View Details</a>
+    
+                        {% if event.user_id == current_user.id and event.status != EventStatus.CANCELLED.value %}
+                        <a href="{{ url_for('event.edit', event_id=event.id) }}" class="btn btn-primary mt-2">Edit Details</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    <!-- Pagination -->
+    <ul class="pagination">
+        {% if pagination.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('event.my_events', page=pagination.prev_num) }}">Prev</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="page-link" href="#">Prev</a>
+        </li>
+        {% endif %}
+
+        {% for p in pagination.iter_pages() %}
+        <li class="page-item {% if p == pagination.page %}active{% endif %}">
+            {% if p %}
+            <a class="page-link" href="{{ url_for('event.my_events', page=p) }}">{{ p }}</a>
+            {% else %}
+            <span class="page-link">...</span>
+            {% endif %}
+        </li>
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('event.my_events', page=pagination.next_num) }}">Next</a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <a class="page-link" href="#">Next</a>
+        </li>
+        {% endif %}
+    </ul>
+</div>
+
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

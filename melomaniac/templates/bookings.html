@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<div class="container mt-5">
+    <h1>My bookings</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2>Upcoming bookings</h2>
+        <div class="row">
+            {% if bookings|length == 0 %}
+            <p class="text-muted">No {{'past' if show_past else 'upcoming'}} bookings found.</p>
+            {% endif %}
+            {% for booking in bookings %}
+            {% with event=booking.event %}
+            <div class="col-xs-6 col-md-6 col-lg-4 mb-4">
+                <div class="card">
+                    <a href="{{ url_for('event.get_event', event_id=event.id) }}">
+                        <img src="{{event.image}}" class="card-img-top" alt="Event Image">
+                    </a>
+                    <div class="card-body">
+                        {% if event.status == EventStatus.OPEN.value %}
+                        <p class="card-text badge badge-success">Open</p>
+                        {% elif event.status == EventStatus.INACTIVE.value %}
+                        <p class="card-text badge badge-warning">Inactive</p>
+                        {% elif event.status == EventStatus.SOLDOUT.value %}
+                        <p class="card-text badge badge-danger">Sold-out</p>
+                        {% elif event.status == EventStatus.CANCELLED.value %}
+                        <p class="card-text badge badge-danger">Cancelled</p>
+                        {% endif %}
+                        <p class="card-text badge badge-success">{{booking.quantity}}x admission</p>
+                        <h5 class="card-title">{{event.name}}</h5>
+                        <p class="card-text"><i class="fas fa-fw fa-user me-2"></i>{{event.user.name}}</p>
+                        <p class="card-text"><i class="fas fa-fw fa-calendar-alt me-2"></i>{{event.readable_date(event.start_date)}}</p>
+                        <p class="card-text"><i class="fas fa-fw fa-location-pin me-2"></i>{{event.venue.name}}</p>
+                        <p class="card-text"><i class="fas fa-fw fa-music me-2"></i>Genre: {{ Genre(event.genre).name.capitalize() }}</p>
+                        <p class="card-text"><i class="fas fa-fw fa-dollar-sign me-2"></i>Total price paid: ${{ '{:.2f}'.format(booking.total_price) }}</p>
+                        <p class="card-text"><i class="fas fa-fw fa-tag me-2"></i>Booking ID: {{booking.id}}</p>
+                        <p><small><em class="card-text">Booked on {{booking.readable_date(booking.timestamp)}}</em></small></p>
+                        <a href="{{ url_for('event.get_event', event_id=event.id) }}" class="btn btn-primary mt-2">View Details</a>
+                        <!-- <a href="{{ url_for('event.get_event', event_id=event.id) }}" class="btn btn-danger mt-2"><i class="fas fa-fw fa-times"></i>Cancel Booking</a> -->
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+            {% endfor %}
+        </div>
+
+<!-- Pagination -->
+<ul class="pagination">
+    {% if pagination.has_prev %}
+    <li class="page-item">
+        <a class="page-link" href="{{ url_for('bookings.index', page=pagination.prev_num) }}">Prev</a>
+    </li>
+    {% else %}
+    <li class="page-item disabled">
+        <a class="page-link" href="#">Prev</a>
+    </li>
+    {% endif %}
+
+    {% for p in pagination.iter_pages() %}
+    <li class="page-item {% if p == pagination.page %}active{% endif %}">
+        {% if p %}
+        <a class="page-link" href="{{ url_for('bookings.index', page=p) }}">{{ p }}</a>
+        {% else %}
+        <span class="page-link">...</span>
+        {% endif %}
+    </li>
+    {% endfor %}
+
+    {% if pagination.has_next %}
+    <li class="page-item">
+        <a class="page-link" href="{{ url_for('bookings.index', page=pagination.next_num) }}">Next</a>
+    </li>
+    {% else %}
+    <li class="page-item disabled">
+        <a class="page-link" href="#">Next</a>
+    </li>
+    {% endif %}
+</ul>
+</div>
+{% endblock %}
+
+{% block footer %}
+{% endblock %}

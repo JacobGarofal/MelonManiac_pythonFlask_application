@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block header %}
+{% endblock %}
+{% from 'bootstrap5/form.html' import render_form %}
+{% block content %}
+<div class="container my-5">
+    <h1>Create Event</h1>
+    <div class="mt-4">
+        <!-- Details Section -->
+        <form action="{{ url_for('event.create') }}" method="post" enctype="multipart/form-data">
+            <!--{{ form.hidden_tag() }}-->
+            {{ form.csrf_token() }}
+            
+            
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h2 class="accordion-header" id="eventDetailsHeading">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#eventDetailsCollapse">
+                            Event Details
+                        </button>
+                    </h2>
+                </div>
+                <div id="eventDetailsCollapse" class="accordion-collapse collapse show" aria-labelledby="eventDetailsHeading">
+                    <div class="accordion-body card-body">
+                        <div class="mb-3">
+                            <label for="eventName" class="form-label">Event Name</label>
+                            {{ form.name(class="form-control", id="eventName", placeholder="Enter event name") }}
+                            
+                            
+                        </div>
+                        <div class="mb-3">
+                            <label for="startTime" class="form-label">Start Time</label>
+                            {{ form.start_date(class="form-control", id="startTime", placeholder="yyyy-mm-dd hh:mm:ss") }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="endTime" class="form-label">End Time</label>
+                            {{ form.end_date(class="form-control", id="endTime", placeholder="yyyy-mm-dd hh:mm:ss") }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="genre" class="form-label">Genre</label>
+                            <select class="form-select" id="genre" name="genre">
+                                {% for value, label in form.genre.choices %}
+                                    <option value="{{ value }}">{{ label.capitalize() }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="eventBanner" class="form-label">Upload Event Banner</label>
+                           
+                            {{ form.image(class="custom-file-input", id="eventBanner", accept="image/*") }}
+                            <!--<p class="file-name-placeholder">Drag and drop an image here</p>-->
+                       
+                        </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            {{ form.description(class="form-control", id="description", placeholder="Enter description", rows="5") }}
+                        </div>
+                        <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#eventDetailsCollapse">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Venue Details Section -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h2 class="accordion-header" id="venueHeading">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#venueCollapse">
+                            Venue Details
+                        </button>
+                    </h2>
+                </div>
+                <div id="venueCollapse" class="accordion-collapse collapse" aria-labelledby="venueHeading">
+                    <div class="accordion-body card-body">
+                        <!-- Existing Venues Dropdown -->
+                        <div class="mb-4">
+                            <label for="venue" class="form-label">Select Venue</label>
+                            <select class="form-control" id="venue" name="venue">
+                                <option disabled selected>Select a Venue</option>
+                                {% for venue in venues %}
+                                    <option value="{{ venue.id }}">{{ venue.name }}</option>
+                                {% endfor %}
+                            </select>
+                            
+                        </div>
+                        
+
+                        <!-- Venue Details (readonly) -->
+                        <input type="hidden" id="venue_id" name="venue_id" value="">
+                        <div class="mb-3" id="venueAddressDiv" style="display:none;">
+                            <label for="venueAddress" class="form-label">Address</label>
+                            <textarea class="form-control" id="venueAddress" rows="3" readonly></textarea>
+                        </div>
+                        <div class="mb-3" id="venueCapacityDiv" style="display:none;">
+                            <label for="venueCapacity" class="form-label">Capacity</label>
+                            <input type="text" class="form-control" id="venueCapacity" readonly>
+                        </div>
+                        
+                        
+                    </div>
+                </div>
+            </div>
+        
+           <!-- Ticket Options Section -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h2 class="accordion-header" id="ticketHeading">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#ticketCollapse">
+                            Ticket Options
+                        </button>
+                    </h2>
+                </div>
+                <div id="ticketCollapse" class="accordion-collapse collapse" aria-labelledby="ticketHeading">
+                    <div class="accordion-body card-body">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="freeEventCheck" checked id="freeEventCheck">
+                            <label class="form-check-label" for="freeEventCheck">
+                                Free Event
+                            </label>
+                        </div>
+                        <div class="mb-3 collapse" id="ticketPriceCollapsible">
+                            <label for="ticket_price" class="form-label">Ticket Price</label>
+                            <input type="number" class="form-control" name="ticket_price" id="ticket_price" placeholder="Enter ticket price">
+                        </div>
+                        <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#ticketCollapse">Save</button>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="d-flex justify-content-between mt-4">
+                <!--{{form.submit(type="submit", class="btn btn-primary", id="SaveSubmit")}}-->
+                <button type="submit" name="create_event" class="btn btn-primary", id="create_event">Create Event</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 
+{%block scripts %}
+<script src="{{ url_for('static', filename='scripts/create.js') }}"></script>
+{% endblock %}
